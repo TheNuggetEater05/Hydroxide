@@ -48,7 +48,7 @@ for _,v in next, getgc(true) do
             local instance = getupvalue(oldFireServer, 2)
 
             if typeof(instance) ~= "Instance" then
-                return oldInvokeServer(self, ...)
+                return oldFireServer(self, ...)
             end
                 
             if remotesViewing[instance.ClassName] and instance ~= remoteDataEvent and remoteMethods["FireServer"] then
@@ -87,10 +87,12 @@ for _,v in next, getgc(true) do
         oldInvokeServer = hookfunction(rawget(v, "InvokeServer"), function(self, ...)
             local instance = getupvalue(oldInvokeServer, 2)
 
+            print(instance, remotesViewing[instance.ClassName], instance ~= remoteDataEvent, remoteMethods["InvokeServer"])
+
             if typeof(instance) ~= "Instance" then
                 return oldInvokeServer(self, ...)
             end
-                
+            
             if remotesViewing[instance.ClassName] and instance ~= remoteDataEvent and remoteMethods["InvokeServer"] then
                 local remote = currentRemotes[instance]
                 local vargs = {...}
