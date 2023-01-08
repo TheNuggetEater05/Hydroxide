@@ -41,86 +41,90 @@ local function connectEvent(callback)
     end
 end
 
-local oldFireServer
-oldFireServer = hookfunction(rawget(v, "FireServer"), function(self, ...)
-    local instance = getupvalue(oldFireServer, 2)
+for _,v in next, getgc(true) do
+    if type(v) == "table" and type(rawget(v, "FireServer")) == "function" then
+        local oldFireServer
+        oldFireServer = hookfunction(rawget(v, "FireServer"), function(self, ...)
+            local instance = getupvalue(oldFireServer, 2)
 
-    if typeof(instance) ~= "Instance" then
-        return oldInvokeServer(self, ...)
+            if typeof(instance) ~= "Instance" then
+                return oldInvokeServer(self, ...)
+            end
+                
+            if remotesViewing[instance.ClassName] and instance ~= remoteDataEvent and remoteMethods["FireServer"] then
+                local remote = currentRemotes[instance]
+                local vargs = {...}
+                    
+                if not remote then
+                    remote = Remote.new(instance)
+                    currentRemotes[instance] = remote
+                end
+
+                local remoteIgnored = remote.Ignored
+                local remoteBlocked = remote.Blocked
+                local argsIgnored = remote.AreArgsIgnored(remote, vargs)
+                local argsBlocked = remote.AreArgsBlocked(remote, vargs)
+
+                if eventSet and (not remoteIgnored and not argsIgnored) then
+                    local call = {
+                        script = getCallingScript((PROTOSMASHER_LOADED ~= nil and 2) or nil),
+                        args = vargs,
+                        func = getInfo(3).func
+                    }
+
+                    remote.IncrementCalls(remote, call)
+                    remoteDataEvent.Fire(remoteDataEvent, instance, call)
+                end
+
+                if remoteBlocked or argsBlocked then
+                    return
+                end
+            end
+
+            return oldFireServer(self, ...)
+        end)
+        local oldInvokeServer
+        oldInvokeServer = hookfunction(rawget(v, "InvokeServer"), function(self, ...)
+            local instance = getupvalue(oldInvokeServer, 2)
+
+            if typeof(instance) ~= "Instance" then
+                return oldInvokeServer(self, ...)
+            end
+                
+            if remotesViewing[instance.ClassName] and instance ~= remoteDataEvent and remoteMethods["InvokeServer"] then
+                local remote = currentRemotes[instance]
+                local vargs = {...}
+                    
+                if not remote then
+                    remote = Remote.new(instance)
+                    currentRemotes[instance] = remote
+                end
+
+                local remoteIgnored = remote.Ignored
+                local remoteBlocked = remote.Blocked
+                local argsIgnored = remote.AreArgsIgnored(remote, vargs)
+                local argsBlocked = remote.AreArgsBlocked(remote, vargs)
+
+                if eventSet and (not remoteIgnored and not argsIgnored) then
+                    local call = {
+                        script = getCallingScript((PROTOSMASHER_LOADED ~= nil and 2) or nil),
+                        args = vargs,
+                        func = getInfo(3).func
+                    }
+
+                    remote.IncrementCalls(remote, call)
+                    remoteDataEvent.Fire(remoteDataEvent, instance, call)
+                end
+
+                if remoteBlocked or argsBlocked then
+                    return
+                end
+            end
+
+            return oldInvokeServer(self, ...)
+        end)
     end
-        
-    if remotesViewing[instance.ClassName] and instance ~= remoteDataEvent and remoteMethods["FireServer"] then
-        local remote = currentRemotes[instance]
-        local vargs = {...}
-            
-        if not remote then
-            remote = Remote.new(instance)
-            currentRemotes[instance] = remote
-        end
-
-        local remoteIgnored = remote.Ignored
-        local remoteBlocked = remote.Blocked
-        local argsIgnored = remote.AreArgsIgnored(remote, vargs)
-        local argsBlocked = remote.AreArgsBlocked(remote, vargs)
-
-        if eventSet and (not remoteIgnored and not argsIgnored) then
-            local call = {
-                script = getCallingScript((PROTOSMASHER_LOADED ~= nil and 2) or nil),
-                args = vargs,
-                func = getInfo(3).func
-            }
-
-            remote.IncrementCalls(remote, call)
-            remoteDataEvent.Fire(remoteDataEvent, instance, call)
-        end
-
-        if remoteBlocked or argsBlocked then
-            return
-        end
-    end
-
-    return oldFireServer(self, ...)
-end)
-local oldInvokeServer
-oldInvokeServer = hookfunction(rawget(v, "InvokeServer"), function(self, ...)
-    local instance = getupvalue(oldInvokeServer, 2)
-
-    if typeof(instance) ~= "Instance" then
-        return oldInvokeServer(self, ...)
-    end
-        
-    if remotesViewing[instance.ClassName] and instance ~= remoteDataEvent and remoteMethods["InvokeServer"] then
-        local remote = currentRemotes[instance]
-        local vargs = {...}
-            
-        if not remote then
-            remote = Remote.new(instance)
-            currentRemotes[instance] = remote
-        end
-
-        local remoteIgnored = remote.Ignored
-        local remoteBlocked = remote.Blocked
-        local argsIgnored = remote.AreArgsIgnored(remote, vargs)
-        local argsBlocked = remote.AreArgsBlocked(remote, vargs)
-
-        if eventSet and (not remoteIgnored and not argsIgnored) then
-            local call = {
-                script = getCallingScript((PROTOSMASHER_LOADED ~= nil and 2) or nil),
-                args = vargs,
-                func = getInfo(3).func
-            }
-
-            remote.IncrementCalls(remote, call)
-            remoteDataEvent.Fire(remoteDataEvent, instance, call)
-        end
-
-        if remoteBlocked or argsBlocked then
-            return
-        end
-    end
-
-    return oldInvokeServer(self, ...)
-end)
+end
 
 RemoteSpy.RemotesViewing = remotesViewing
 RemoteSpy.CurrentRemotes = currentRemotes
