@@ -50,11 +50,11 @@ for _,v in next, getgc(true) do
             if typeof(instance) ~= "Instance" then
                 return oldFireServer(self, ...)
             end
-                
+
             if remotesViewing[instance.ClassName] and instance ~= remoteDataEvent and remoteMethods["FireServer"] then
                 local remote = currentRemotes[instance]
                 local vargs = {...}
-                    
+
                 if not remote then
                     remote = Remote.new(instance)
                     currentRemotes[instance] = remote
@@ -69,7 +69,7 @@ for _,v in next, getgc(true) do
                     local call = {
                         script = getCallingScript((PROTOSMASHER_LOADED ~= nil and 2) or nil),
                         args = vargs,
-                        func = getInfo(3).func
+                        func = getInfo(2).func
                     }
 
                     remote.IncrementCalls(remote, call)
@@ -87,16 +87,14 @@ for _,v in next, getgc(true) do
         oldInvokeServer = hookfunction(rawget(v, "InvokeServer"), function(self, ...)
             local instance = getupvalue(oldInvokeServer, 2)
 
-            print(instance, remotesViewing[instance.ClassName], instance ~= remoteDataEvent, remoteMethods["InvokeServer"])
-
             if typeof(instance) ~= "Instance" then
                 return oldInvokeServer(self, ...)
             end
-            
+
             if remotesViewing[instance.ClassName] and instance ~= remoteDataEvent and remoteMethods["InvokeServer"] then
                 local remote = currentRemotes[instance]
                 local vargs = {...}
-                    
+
                 if not remote then
                     remote = Remote.new(instance)
                     currentRemotes[instance] = remote
@@ -111,7 +109,7 @@ for _,v in next, getgc(true) do
                     local call = {
                         script = getCallingScript((PROTOSMASHER_LOADED ~= nil and 2) or nil),
                         args = vargs,
-                        func = getInfo(3).func
+                        func = getInfo(2).func
                     }
 
                     remote.IncrementCalls(remote, call)
