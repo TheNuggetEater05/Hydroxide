@@ -43,7 +43,6 @@ end
 
 for _,v in next, getgc(true) do
     if type(v) == "table" and type(rawget(v, "FireServer")) == "function" then
-        local oldFireServer
         oldFireServer = hookfunction(rawget(v, "FireServer"), function(self, ...)
             local instance = getupvalue(oldFireServer, 2)
 
@@ -83,7 +82,6 @@ for _,v in next, getgc(true) do
 
             return oldFireServer(self, ...)
         end)
-        local oldInvokeServer
         oldInvokeServer = hookfunction(rawget(v, "InvokeServer"), function(self, ...)
             local instance = getupvalue(oldInvokeServer, 2)
 
